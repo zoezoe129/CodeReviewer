@@ -4,6 +4,8 @@ import os
 import re
 import random
 import time
+import smtplib
+
 # -------------------------------------------
 #
 # Commit class to contain commit related info
@@ -46,8 +48,9 @@ def schedule_review_request(commits):
         body += "\n"
          
         body += format_review_commit(commit)
- 
         print body
+        send_email(reviewer,subject,body)
+        
 
 def execute_cmd(cmd):
     print "***** Executing command '"+ cmd + "'"
@@ -82,11 +85,27 @@ def process_commits():
     
     return commits
 
+def send_email(to, subject, body):
+    header  = "From: " + FROM_EMAIL + "\n"
+    header += "To: " + to + "\n"
+    header += "Subject: " + subject + "\n"
+    header += "\n"
+    header += body
+ 
+    print "** Sending email to '" + to + "'"
+     
+     
+    mail_server = smtplib.SMTP(SERVER, PORT)
+    mail_server.starttls()
+    mail_server.login(FROM_EMAIL, FROM_PWD)
+    mail_server.sendmail(FROM_EMAIL, to, header)
+    mail_server.quit()
+
 
 
 parser = argparse.ArgumentParser(description="Code Review Scheduler Program")
 parser.add_argument("-n", nargs="?", type=int, default=365, help="Number of (d)ays to look for log. ")
-parser.add_argument("-p", nargs="?", type=str, default="project_x", help="Project name.")
+parser.add_argument("-p", nargs="?", type=str, default="ailing", help="Project name.")
 args = parser.parse_args()
  
 no_days = args.n
@@ -105,8 +124,22 @@ for p in main_config:
     if p['name'] == project:
         project_url = p['git_url']
         project_members = p['members']
-    break
-   
+        break
+
+#
+# Read the mail server config file
+#
+with open('pwd.json') as mailserver_file:
+    mailserver_config = json.load(mailserver_file)
+
+for p in mailserver_config:
+    FROM_EMAIL = p['from_mail']
+    FROM_PWD = p['from_pwd']
+    SERVER = p['server']
+    PORT = p['port']
+       
+
+
 
 # Clone the repository if not already exists
 print "********* Doing project checkout **********"
