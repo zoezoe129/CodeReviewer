@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse
 import json
 import os
@@ -11,7 +12,7 @@ import imaplib
 import email
 import logging
 from logging.handlers import RotatingFileHandler
-
+from copy import copy
 # -------------------------------------------
 #
 # Commit class to contain commit related info
@@ -23,6 +24,54 @@ class Commit:
         self.Author = Author;
         self.Date = Date;
 
+# -------------------------------------------
+#
+# Utility to remove non-reviewer information
+#
+# -------------------------------------------
+def followup_request():
+    with open('reviewer.json','r') as jfile:
+        review_info = json.load(jfile)
+    review_info_copy = copy(review_info)
+ 
+    email_info = read_email(past_days)
+ 
+    for review in review_info:
+        review_date = datetime.datetime.strptime(review['sendDate'],'%Y-%m-%d')
+        today = datetime.datetime.today()
+        print review_date
+        print today
+        #days_since_review = (today - review_date).days
+        days_since_review = (today - review_date).total_seconds()/60 /60
+        print str(days_since_review) +' h '
+        review_replied = False
+        expected_subject = 'Re: ' + review['subject']
+        for email in email_info:
+            if expected_subject == email['Subject']:
+                review_replied = True
+                review_info_copy = Delete_Info(review_info_copy,review['id'])
+                break;
+        
+        if not review_replied:
+            if days_since_review > followup_frequency:
+                send_email(review['reviewer'],'Reminder: ' + review['subject'],'\nYou have not responded to the review request\n')
+
+ 
+    if review_info_copy != review_info:
+        with open('reviewer.json','w') as outfile:
+            json.dump(review_info_copy,outfile)
+# -------------------------------------------
+#
+# Utility to remove non-reviewer information
+#
+# -------------------------------------------
+        
+def Delete_Info(info, id):
+    for i in xrange(len(info)):
+        if info[i]['id'] == id:
+            info.pop(i)
+            break
+    return info
 # -------------------------------------------
 #
 # Utility to read email inbox
@@ -53,7 +102,12 @@ def read_email(num_days):
                 if isinstance(response_part, tuple):
                     msg = email.message_from_string(response_part[1])
                     email_info.append({'From':msg['from'],'Subject':msg['subject'].replace("\r\n","")})
- 
+                    print 'From: ' + msg['from']
+                    print '\n'
+                    print 'Subject: ' + msg['subject']
+                    print '\n'
+                    print '------------------------------------------------'
+                    
     except Exception, e:
         print str(e)
  
@@ -80,7 +134,7 @@ def save_review_info(reviewer, subject):
 # Method to select random reviewer
 #
 # -----------------------------------------
- def select_reviewer(author, group):
+def select_reviewer(author, group):
     if author in group:
         group.remove(author)
     reviewer = random.choice(group)
@@ -117,7 +171,7 @@ def schedule_review_request(commits):
         body += format_review_commit(commit)
         print body
         save_review_info(reviewer, subject)
-        send_email(reviewer,subject,body)
+        #send_email(reviewer,subject,body)
         
 # ----------------------------------
 #
@@ -183,7 +237,7 @@ def send_email(to, subject, body):
     mail_server.sendmail(FROM_EMAIL, to, header)
     mail_server.quit()
 
-    
+
 #
 # Read the program parameters
 #
@@ -210,11 +264,13 @@ print 'Processing the scheduler against project ' + project + '....'
 with open('config.json') as cfg_file:
     main_config = json.load(cfg_file)
 
-project_members=''
+
 for p in main_config:
     if p['name'] == project:
         project_url = p['git_url']
         project_members = p['members']
+        followup_frequency = p['followup_frequency']
+
         break
 
 #
@@ -249,15 +305,17 @@ print 'Processing the scheduler against project ' + project + '....'
 
 try:
     commits = process_commits()
- 
+    followup_request()
     if len(commits) == 0:
         print 'No commits found '
     else:
         schedule_review_request(commits)
-        read_email(past_days)
+
 except Exception,e:
     print 'Error occurred. Check log for details.'
     logger.error(str(datetime.datetime.now()) + " - Error while reading mail : " + str(e) + "\n")
     logger.exception(str(e))
+
+
 
 

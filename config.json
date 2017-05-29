@@ -1,6 +1,7 @@
 [{
     "name": "project_x",
     "git_url": "https://github.com/royagasthyan/project_x",
+    "followup_frequency":2,
     "members": [
         "royagasthyan",
         "hari",
@@ -10,6 +11,7 @@
 }, {
     "name": "project_y",
     "git_url": "https://github.com/royagasthyan/project_y",
+    "followup_frequency":2,
     "members": [
         "royagasthyan",
         "hari",
@@ -19,6 +21,7 @@
 }, {
     "name": "ailing",
     "git_url": "https://github.com/zoezoe129/gittest3",
+    "followup_frequency":2,
     "members": [
         "zoezoe0129@gmail.com",
         "tsaidungru.ncku@gmail.com",

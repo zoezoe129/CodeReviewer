@@ -1,0 +1,47 @@
+2017-05-29 23:21:44.871672 - Error while reading mail : unsupported operand type(s) for -: 'datetime.date' and 'datetime.datetime'
+
+unsupported operand type(s) for -: 'datetime.date' and 'datetime.datetime'
+Traceback (most recent call last):
+  File "/home/ailing/codePrac/CodeReviewer/scheduler.py", line 306, in <module>
+    followup_request()
+  File "/home/ailing/codePrac/CodeReviewer/scheduler.py", line 43, in followup_request
+    days_since_review = (today - review_date).days
+TypeError: unsupported operand type(s) for -: 'datetime.date' and 'datetime.datetime'
+2017-05-29 23:26:16.494005 - Error while reading mail : 'module' object has no attribute 'today'
+
+'module' object has no attribute 'today'
+Traceback (most recent call last):
+  File "/home/ailing/codePrac/CodeReviewer/scheduler.py", line 306, in <module>
+    followup_request()
+  File "/home/ailing/codePrac/CodeReviewer/scheduler.py", line 40, in followup_request
+    today = datetime.today()
+AttributeError: 'module' object has no attribute 'today'
+2017-05-29 23:26:38.584789 - Error while reading mail : 'module' object has no attribute 'strptime'
+
+'module' object has no attribute 'strptime'
+Traceback (most recent call last):
+  File "/home/ailing/codePrac/CodeReviewer/scheduler.py", line 306, in <module>
+    followup_request()
+  File "/home/ailing/codePrac/CodeReviewer/scheduler.py", line 39, in followup_request
+    review_date = datetime.strptime(review['sendDate'],'%Y-%m-%d')
+AttributeError: 'module' object has no attribute 'strptime'
+2017-05-29 23:36:37.186893 - Error while reading mail : 'datetime.timedelta' object has no attribute 'total_minutes'
+
+'datetime.timedelta' object has no attribute 'total_minutes'
+Traceback (most recent call last):
+  File "/home/ailing/codePrac/CodeReviewer/scheduler.py", line 308, in <module>
+    followup_request()
+  File "/home/ailing/codePrac/CodeReviewer/scheduler.py", line 45, in followup_request
+    days_since_review = (today - review_date).total_minutes()
+AttributeError: 'datetime.timedelta' object has no attribute 'total_minutes'
+2017-05-29 23:39:47.786377 - Error while reading mail : unsupported operand type(s) for %: 'datetime.timedelta' and 'int'
+
+unsupported operand type(s) for %: 'datetime.timedelta' and 'int'
+Traceback (most recent call last):
+  File "/home/ailing/codePrac/CodeReviewer/scheduler.py", line 309, in <module>
+    followup_request()
+  File "/home/ailing/codePrac/CodeReviewer/scheduler.py", line 46, in followup_request
+    days_since_review = diff%60
+TypeError: unsupported operand type(s) for %: 'datetime.timedelta' and 'int'
+2017-05-29 23:42:11.869302 - Error while reading mail : global name 'deff' is not defined
+
