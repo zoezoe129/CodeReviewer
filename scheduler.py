@@ -12,9 +12,11 @@ def execute_cmd(cmd):
 def process_commits():
     cmd = "cd " + project + "; git log --all --since=" + str(no_days) + ".day --name-status"
     response = execute_cmd(cmd)
+    print response
     for line in response.splitlines():
         if line.startswith('commit'):       
-            print line[7:]
+            print line.split(' ')[1]
+        
         if line.startswith('Author:'):
             if(re.search('\<(.*?)\>',line)):
                 print re.search('\<(.*?)\>',line).group(1)
@@ -22,8 +24,8 @@ def process_commits():
             print line[5:]
 
 parser = argparse.ArgumentParser(description="Code Review Scheduler Program")
-parser.add_argument("-n", nargs="?", type=int, default=1, help="Number of (d)ays to look for log. ")
-parser.add_argument("-p", nargs="?", type=str, default="project_ex", help="Project name.")
+parser.add_argument("-n", nargs="?", type=int, default=365, help="Number of (d)ays to look for log. ")
+parser.add_argument("-p", nargs="?", type=str, default="project_x", help="Project name.")
 args = parser.parse_args()
  
 no_days = args.n
