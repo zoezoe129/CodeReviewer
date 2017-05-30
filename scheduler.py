@@ -104,11 +104,11 @@ def read_email(num_days):
                 if isinstance(response_part, tuple):
                     msg = email.message_from_string(response_part[1])
                     email_info.append({'From':msg['from'],'Subject':msg['subject'].replace("\r\n","")})
-                    #print 'From: ' + msg['from']
-                    #print '\n'
-                    #print 'Subject: ' + msg['subject']
-                    #print '\n'
-                    #print '------------------------------------------------'
+                    print 'From: ' + msg['from']
+                    print '\n'
+                    print 'Subject: ' + msg['subject']
+                    print '\n'
+                    print '------------------------------------------------'
 
         with open('email.json','w') as outfile:
             json.dump(email_info,outfile)  
@@ -233,7 +233,7 @@ def send_email(to, subject, body):
     header += "\n"
     header += body
  
-    print "** Sending email to '" + to + "'"
+    print "** Sending email to '" + to + "' **"
      
      
     mail_server = smtplib.SMTP(SERVER, PORT)
@@ -260,6 +260,27 @@ args = parser.parse_args()
 no_days = args.n
 project = args.p
 past_days = args.d
+
+
+review_choose=False
+if not os.path.exists('traceProject.json'):
+    with open('traceProject.json','w+') as outfile:
+        json.dump([project],outfile)
+        review_choose=True
+
+with open('traceProject.json','r') as infile:
+    trace_project = json.load(infile)
+
+
+
+for t in trace_project:
+    if t <> project : 
+        review_choose=True
+        trace_project.append(project)
+        with open('traceProject.json','w') as outfile:
+            json.dump(trace_project,outfile)
+
+
 
 print 'Processing the scheduler against project ' + project + '....'
 
@@ -305,21 +326,32 @@ print "*** Done *******"
 print " "
 
 
-print 'Processing the scheduler against project ' + project + '....'
-#process_commits()
 
-try:
-    commits = process_commits()
-    followup_request()
-    if len(commits) == 0:
-        print 'No commits found '
-    else:
-        schedule_review_request(commits)
+if review_choose :
+    try:
+        commits = process_commits()
+        followup_request()
+        if len(commits) == 0:
+            print 'No commits found '
+        else:
+            print 'hello'
+            schedule_review_request(commits)
 
-except Exception,e:
-    print 'Error occurred. Check log for details.'
-    logger.error(str(datetime.datetime.now()) + " - Error while reading mail : " + str(e) + "\n")
-    logger.exception(str(e))
+    except Exception,e:
+        print 'Error occurred. Check log for details.'
+        logger.error(str(datetime.datetime.now()) + " - Error while reading mail : " + str(e) + "\n")
+        logger.exception(str(e))
+else :
+    try:
+        
+        followup_request()
+        
+
+    except Exception,e:
+        print 'Error occurred. Check log for details.'
+        logger.error(str(datetime.datetime.now()) + " - Error while reading mail : " + str(e) + "\n")
+        logger.exception(str(e))
+
 
 
 
