@@ -39,15 +39,16 @@ def followup_request():
     for review in review_info:
         review_date = datetime.datetime.strptime(review['sendDate'],'%Y-%m-%d')
         today = datetime.datetime.today()
-        print review_date
-        print today
+        #print review_date
+        #print today
         #days_since_review = (today - review_date).days
         days_since_review = (today - review_date).total_seconds()/60 /60
         print str(days_since_review) +' h '
         review_replied = False
-        expected_subject = 'Re: ' + review['subject']
+        expected_subject1 = 'Re: ' + review['subject']
+        expected_subject2 = 'Re: ' +'Reminder: '+ review['subject']
         for email in email_info:
-            if expected_subject == email['Subject']:
+            if (expected_subject1 == email['Subject'] ) or  (expected_subject2 == email['Subject'] ):
                 review_replied = True
                 review_info_copy = Delete_Info(review_info_copy,review['id'])
                 break;
@@ -55,6 +56,7 @@ def followup_request():
         if not review_replied:
             if days_since_review > followup_frequency:
                 send_email(review['reviewer'],'Reminder: ' + review['subject'],'\nYou have not responded to the review request\n')
+                print review['subject'] + ' no reply'
 
  
     if review_info_copy != review_info:
@@ -108,7 +110,10 @@ def read_email(num_days):
                     print '\n'
                     print '------------------------------------------------'
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> new
         with open('email.json','w') as outfile:
             json.dump(email_info,outfile)  
 
@@ -175,7 +180,7 @@ def schedule_review_request(commits):
         body += format_review_commit(commit)
         print body
         save_review_info(reviewer, subject)
-        #send_email(reviewer,subject,body)
+        send_email(reviewer,subject,body)
         
 # ----------------------------------
 #
