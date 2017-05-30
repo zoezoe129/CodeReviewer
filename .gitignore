@@ -1,1 +1,3 @@
 pwd.json
+*.log
+.vscode
