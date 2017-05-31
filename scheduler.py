@@ -110,10 +110,7 @@ def read_email(num_days):
                     print '\n'
                     print '------------------------------------------------'
 
-<<<<<<< HEAD
 
-=======
->>>>>>> new
         with open('email.json','w') as outfile:
             json.dump(email_info,outfile)  
 
