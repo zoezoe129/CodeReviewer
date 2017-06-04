@@ -71,7 +71,17 @@ def followup_request():
 def Delete_Info(info, id):
     for i in xrange(len(info)):
         if info[i]['id'] == id:
+           
+            with open('chkCommit.json','r') as infile:
+                chkCommit_data = json.load(infile)
+ 
+            chkCommit_data.append( info[i])
+ 
+            with open('chkCommit.json','w') as outfile:
+                json.dump(chkCommit_data,outfile)
+
             info.pop(i)
+
             break
     return info
 # -------------------------------------------
@@ -166,18 +176,36 @@ def format_review_commit(commit):
 # ------------------------------------------
 def schedule_review_request(commits):
     date = time.strftime("%Y-%m-%d")
-     
+    with open('reviewer.json','r') as jfile:
+        review_info = json.load(jfile) 
+    with open('chkCommit.json','r') as jfile:
+        chkCommit_info = json.load(jfile) 
+    send=True
     for commit in commits:
-        reviewer = select_reviewer(commit.Author, project_members)
-        subject = date + " Code Review [commit:" + commit.Id + "]"
-        body = "Hello '" + reviewer + "', you have been selected to review the code for commit\n"
-        body += "done by '" + commit.Author + "'.\n"
-        body += "\n"
-         
-        body += format_review_commit(commit)
-        print body
-        save_review_info(reviewer, subject)
-        send_email(reviewer,subject,body)
+        for review in review_info:
+            #print 'commit.Id: ' +  commit.Id
+            index=review['subject'].find("commit:")
+            #print 'review id: ' + review['subject'][index+7:-1]
+
+            if commit.Id == review['subject'][index+7:-1]:
+                send=False
+                break
+        for chk in chkCommit_info:
+            index=chk['subject'].find("commit:")
+            if commit.Id == chk['subject'][index+7:-1]:
+                send=False
+                break
+        if send == True:      
+            reviewer = select_reviewer(commit.Author, project_members)
+            subject = date + " Code Review [commit:" + commit.Id + "]"
+            body = "Hello '" + reviewer + "', you have been selected to review the code for commit\n"
+            body += "done by '" + commit.Author + "'.\n"
+            body += "\n"
+            
+            body += format_review_commit(commit)
+            print body
+            save_review_info(reviewer, subject)
+            send_email(reviewer,subject,body)
         
 # ----------------------------------
 #
@@ -262,27 +290,6 @@ no_days = args.n
 project = args.p
 past_days = args.d
 
-
-review_choose=False
-if not os.path.exists('traceProject.json'):
-    with open('traceProject.json','w+') as outfile:
-        json.dump([project],outfile)
-        review_choose=True
-
-with open('traceProject.json','r') as infile:
-    trace_project = json.load(infile)
-
-
-
-for t in trace_project:
-    if t <> project : 
-        review_choose=True
-        trace_project.append(project)
-        with open('traceProject.json','w') as outfile:
-            json.dump(trace_project,outfile)
-
-
-
 print 'Processing the scheduler against project ' + project + '....'
 
 #
@@ -290,7 +297,6 @@ print 'Processing the scheduler against project ' + project + '....'
 #
 with open('config.json') as cfg_file:
     main_config = json.load(cfg_file)
-
 
 for p in main_config:
     if p['name'] == project:
@@ -316,6 +322,9 @@ if not os.path.exists('reviewer.json'):
     with open('reviewer.json','w+') as outfile:
         json.dump([],outfile)
 
+if not os.path.exists('chkCommit.json'):
+    with open('chkCommit.json','w+') as outfile:
+        json.dump([],outfile)
 
 # Clone the repository if not already exists
 print "********* Doing project checkout **********"
@@ -328,30 +337,21 @@ print " "
 
 
 
-if review_choose :
-    try:
-        commits = process_commits()
-        followup_request()
-        if len(commits) == 0:
-            print 'No commits found '
-        else:
-            print 'hello'
-            schedule_review_request(commits)
 
-    except Exception,e:
-        print 'Error occurred. Check log for details.'
-        logger.error(str(datetime.datetime.now()) + " - Error while reading mail : " + str(e) + "\n")
-        logger.exception(str(e))
-else :
-    try:
-        
-        followup_request()
-        
+try:
+    commits = process_commits()
+    followup_request()
 
-    except Exception,e:
-        print 'Error occurred. Check log for details.'
-        logger.error(str(datetime.datetime.now()) + " - Error while reading mail : " + str(e) + "\n")
-        logger.exception(str(e))
+    if len(commits) == 0:
+        print 'No commits found '
+    else:
+
+        schedule_review_request(commits)
+
+except Exception,e:
+    print 'Error occurred. Check log for details.'
+    logger.error(str(datetime.datetime.now()) + " - Error while reading mail : " + str(e) + "\n")
+    logger.exception(str(e))
 
 
 
