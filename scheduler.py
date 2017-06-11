@@ -43,7 +43,7 @@ def followup_request():
         #print today
         #days_since_review = (today - review_date).days
         days_since_review = (today - review_date).total_seconds()/60 /60
-        print str(days_since_review) +' h '
+        print (str(days_since_review) +' h ')
         review_replied = False
         expected_subject1 = 'Re: ' + review['subject']
         expected_subject2 = 'Re: ' +'Reminder: '+ review['subject']
@@ -56,7 +56,7 @@ def followup_request():
         if not review_replied:
             if days_since_review > followup_frequency:
                 send_email(review['reviewer'],'Reminder: ' + review['subject'],'\nYou have not responded to the review request\n')
-                print review['subject'] + ' no reply'
+                print (review['subject'] + ' no reply')
 
  
     if review_info_copy != review_info:
@@ -114,18 +114,18 @@ def read_email(num_days):
                 if isinstance(response_part, tuple):
                     msg = email.message_from_string(response_part[1])
                     email_info.append({'From':msg['from'],'Subject':msg['subject'].replace("\r\n","")})
-                    print 'From: ' + msg['from']
-                    print '\n'
-                    print 'Subject: ' + msg['subject']
-                    print '\n'
-                    print '------------------------------------------------'
+                    print ('From: ' + msg['from'])
+                    print ('\n')
+                    print ('Subject: ' + msg['subject'])
+                    print ('\n')
+                    print ('------------------------------------------------')
 
 
         with open('email.json','w') as outfile:
             json.dump(email_info,outfile)  
 
-    except Exception, e:
-        print str(e)
+    except Exception as e:
+        print (str(e))
  
     return email_info
 
@@ -203,7 +203,7 @@ def schedule_review_request(commits):
             body += "\n"
             
             body += format_review_commit(commit)
-            print body
+            print (body)
             save_review_info(reviewer, subject)
             send_email(reviewer,subject,body)
         
@@ -213,7 +213,7 @@ def schedule_review_request(commits):
 #
 # ----------------------------------
 def execute_cmd(cmd):
-    print "***** Executing command '"+ cmd + "'"
+    print ("***** Executing command '"+ cmd + "'")
     response = os.popen(cmd).read()
     return response
 
@@ -232,7 +232,7 @@ def process_commits():
 
     for line in response.splitlines():
         if line.startswith('commit '):       
-            if commitId <> "":
+            if commitId != "":
                 commits.append(Commit(commitId, author, date))
             author = ''
             date = ''
@@ -245,7 +245,7 @@ def process_commits():
         if line.startswith('Date:'):
             #print line[5:]
             date=line[5:]
-    if commitId <> "":
+    if commitId != "":
         commits.append(Commit(commitId, author, date))
     
     return commits
@@ -262,7 +262,7 @@ def send_email(to, subject, body):
     header += "\n"
     header += body
  
-    print "** Sending email to '" + to + "' **"
+    print ("** Sending email to '" + to + "' **")
      
      
     mail_server = smtplib.SMTP(SERVER, PORT)
@@ -290,7 +290,7 @@ no_days = args.n
 project = args.p
 past_days = args.d
 
-print 'Processing the scheduler against project ' + project + '....'
+print ('Processing the scheduler against project ' + project + '....')
 
 #
 # Read the scheduler config file
@@ -325,15 +325,18 @@ if not os.path.exists('reviewer.json'):
 if not os.path.exists('chkCommit.json'):
     with open('chkCommit.json','w+') as outfile:
         json.dump([],outfile)
+        
+if not os.path.exists('email.json'):
+    with open('email.json','w+') as outfile:
+        json.dump([],outfile)
 
 # Clone the repository if not already exists
-print "********* Doing project checkout **********"
+print ("********* Doing project checkout **********")
 if(os.path.isdir("./" + project)):
     execute_cmd("cd " + project + "; git pull")
 else:
     execute_cmd("git clone " + project_url + " " + project)
-print "*** Done *******"
-print " "
+print ("*** Done *****\n")
 
 
 
@@ -343,13 +346,13 @@ try:
     followup_request()
 
     if len(commits) == 0:
-        print 'No commits found '
+        print ('No commits found ')
     else:
 
         schedule_review_request(commits)
 
-except Exception,e:
-    print 'Error occurred. Check log for details.'
+except Exception as e:
+    print ('Error occurred. Check log for details.')
     logger.error(str(datetime.datetime.now()) + " - Error while reading mail : " + str(e) + "\n")
     logger.exception(str(e))
 
